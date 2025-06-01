@@ -1,7 +1,12 @@
-const items = []
+let items = []
 
-function addItem(){
-    const itemName = document.querySelector("#item").value
+function addItem() {
+    const itemName = document.querySelector("#item").value.trim()
+
+    if (itemName === ""){
+        alert("Digite um item válido!")
+        return
+    }
 
     const item = {
         name: itemName,
@@ -12,34 +17,38 @@ function addItem(){
 
     document.querySelector("#item").value = ""
 
-   showItemsList()
+    showItemsList()
 }
 
-function showItemsList(){ 
+function showItemsList() {
     const sectionList = document.querySelector(".list")
     sectionList.textContent = ""
 
-    items.forEach((item, index)=> {
+    // Ordena: não checados em cima, checados embaixo
+    items.sort((itemA, itemB) => Number(itemA.checked) - Number(itemB.checked))
+
+    items.forEach((item, index) => {
         sectionList.innerHTML += `
         <div class="item">
-                <div>
-                    <input type="checkbox" name="list" id="item-${index}" ${item.checked && "checked"}>
-
-                    <div class="custom-checkbox" onclick="checkItem('${item.name}')">
-                        <img src="./assets/checked.svg" alt="checked">
-                    </div>
-                    <label for="item-${index}" onclick="checkItem('${item.name}')">${item.name}</label>
+            <div>
+                <input type="checkbox" name="list" id="item-${index}" ${item.checked ? "checked" : ""}>
+                <div class="custom-checkbox" onclick="checkItem('${item.name}')">
+                    <img src="./assets/checked.svg" alt="checked">
                 </div>
-                <button onclick="removeItem('${item.name}')">
-                    <img src="./assets/trash-icon.svg" alt="trash">
-                </button>
+                <label for="item-${index}" onclick="checkItem('${item.name}')">${item.name}</label>
             </div>
+            <button onclick="removeItem('${item.name}')">
+                <img src="./assets/trash-icon.svg" alt="trash">
+            </button>
+        </div>
        `
     })
+
+    localStorage.setItem("items", JSON.stringify(items))
 }
 
-function removeItem(itemName){
-    const itemIndex = items.findIndex((item) => item.name=== itemName)
+function removeItem(itemName) {
+    const itemIndex = items.findIndex((item) => item.name === itemName)
     const divWarning = document.querySelector(".warning")
 
     divWarning.classList.remove("hide-warning")
@@ -47,22 +56,34 @@ function removeItem(itemName){
     setTimeout(() => {
         divWarning.classList.add("hide-warning")
     }, 4000)
-    
-    if(itemIndex !== -1){
+
+    if (itemIndex !== -1) {
         items.splice(itemIndex, 1)
     }
 
     showItemsList()
 }
 
-function addHideWarnignClass() {
+function addHideWarningClass() {
     document.querySelector(".warning").classList.add("hide-warning")
 }
 
-function checkItem(itemName){
-    const item = items.find(() => item.name === itemName )
+function checkItem(itemName) {
+    const item = items.find((item) => item.name === itemName)
 
-    item.checked = !item.checked
-    showItemsList()
+    if (item) {
+        item.checked = !item.checked
+        showItemsList()
+    }
 }
 
+function verifyLocalStorageItems() {
+    const localStorageItems = localStorage.getItem("items")
+
+    if (localStorageItems) {
+        items = JSON.parse(localStorageItems)
+        showItemsList()
+    }
+}
+
+verifyLocalStorageItems()
